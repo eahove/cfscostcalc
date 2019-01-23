@@ -1,0 +1,92 @@
+---
+title: "tuitions"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+This is the function for calculating tuition given a bracket or smooth model
+
+```{r,echo=FALSE,results='hide'}
+
+calc_tuitions <- function(incomes, max_income=110,min_income=20,max_tuition=13.5, min_tuition=1.600,percents_slope=NA,brackets=FALSE,bracket_boundaries=NA,
+  bracket_percents=NA,rounding=0) {
+
+
+  
+    
+
+max_percent = max_tuition/max_income*100
+min_percent = min_tuition/min_income*100
+
+if(is.na(percents_slope)) {percents_slope = (max_percent-min_percent)/(max_income-min_income)}
+
+
+
+
+# Calculate the tuition percentage, either for brackets model or smooth model
+
+if(brackets){
+  # We are given bracket boundaries and percents
+  percents=vector(mode="numeric",length=length(incomes))
+  for (i in seq(from=length(bracket_boundaries),to=1,by=-1)){
+  percents[incomes<bracket_boundaries[i]]<-bracket_percents[i] 
+  }
+  percents[incomes>=bracket_boundaries[length(bracket_boundaries)]]<-bracket_percents[length(bracket_percents)]
+}   else { 
+  # we are using the smooth model
+percents<-(incomes-min_income)*percents_slope  + min_percent
+#print("percents slope")
+#print(percents_slope)
+
+#print("min percent")
+#print(min_percent)
+}
+
+
+# Calculate tuition given the percent and the minimum and maximum tuitions
+tuition<-pmin(max_tuition,pmax(min_tuition,incomes*percents/100))
+
+if(rounding){
+  tuition=round(tuition/rounding)*rounding
+}
+
+#print(percents)
+outputs<-list(tuition=tuition,
+              percents=percents,
+              incomes=incomes)
+print(as.data.frame(outputs))
+return(outputs)
+}
+```
+
+
+```{r}
+
+# Set a list of family incomes for which to calculate tuition
+incomes<-seq(from=10,to=140,by=5)
+
+```
+
+
+```{r}
+
+# Calculate the tuitions under the smooth and bracket models
+
+outputs1<-calc_tuitions(incomes,max_income = 104,max_tuition=13.5,rounding=FALSE) # Smooth model
+outputs2<-calc_tuitions(incomes,min_tuition = 1.6, brackets=TRUE,bracket_boundaries=c(20.,40.,60.,80,100),bracket_percents = c(0,8.,9,10,11,12)*1.1,rounding=FALSE) # Bracket model
+#outputs2<-calc_tuitions(incomes,min_tuition = 1.5,max_tuition=12, brackets=TRUE,bracket_boundaries=c(20.,40.,60.,80,100),bracket_percents = c(0,8.,9,10,11,12),rounding=FALSE) # Bracket model
+
+# Now take the average of the two models 
+outputs3<-outputs1
+outputs3$tuition<-(outputs1$tuition+outputs2$tuition)/2
+
+outputs3$tuition<-ceiling(outputs3$tuition/.1)*.1 # do rounding
+
+print(outputs3$tuition)
+```
+
+

@@ -1,0 +1,219 @@
+---
+title: "Models for tuition increases at Chicago Free School"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+
+```{r,echo=FALSE}
+knitr::opts_chunk$set(echo=FALSE,results='asis')
+library(readxl)
+library(scales)
+tuitions <- read_excel("tuitions.xlsx", 
+    sheet = "Sheet 1", skip = 3)
+tuitions$`family income`[64:70]<-as.character(seq(130000,to=160000,by=5000))
+```
+
+```{r,echo=FALSE,results='hide'}
+#incomes<-1:130
+calc_tuitions <- function(max_income=110,min_income=20,max_tuition=13.5, min_tuition=1.650,squared_term=0,percents_slope=NA,combine=FALSE,brackets=FALSE,bracket_boundaries=NA,bracket_percents=NA,
+                          rounding=0) {
+
+  
+
+max_percent = max_tuition/max_income*100
+min_percent = min_tuition/min_income*100
+
+if(is.na(percents_slope)) {percents_slope = (max_percent-min_percent)/(max_income-min_income)}
+
+incomes<-as.numeric(tuitions$`family income`)/1000
+incomes[is.na(incomes)]=130
+if(brackets){
+  percents=vector(mode="numeric",length=length(incomes))
+  for (i in seq(from=length(bracket_boundaries),to=1,by=-1)){
+  #  print(bracket_boundaries[i])
+  #  print(incomes<bracket_boundaries[i])
+  percents[incomes<bracket_boundaries[i]]<-bracket_percents[i] 
+  }
+  percents[incomes>=bracket_boundaries[length(bracket_boundaries)]]<-bracket_percents[length(bracket_percents)]
+}   else {
+percents<-(incomes-min_income)*percents_slope + (incomes-min_income)*(incomes-min_income)*squared_term + min_percent
+}
+
+
+
+
+tuition<-pmin(max_tuition,pmax(min_tuition,incomes*percents/100))
+
+if(rounding){
+  tuition=round(tuition/rounding)*rounding
+}
+
+tuition[!is.na(tuitions$X__1=="sibling")]=tuition[!is.na(tuitions$X__1=="sibling")]/2
+
+
+monthly_increase=(tuition-as.numeric(tuitions$tuition)/1000)*100
+
+outputs<-list(tuition=tuition,monthly_increase=monthly_increase,
+              percents=percents,
+              incomes=incomes)
+return(outputs)
+}
+```
+
+
+```{r}
+make_plots <- function(name,tuition,monthly_increase,incomes,tuitions){
+#list2env(outputs,envir=environment())
+
+  
+par(mfrow=c(2,2))
+
+plot(incomes,tuition,col='red',pch=18,xlab='Family income (thousands)',ylab='Annual tuition (thousands)',main=sprintf("Current tuition \n vs %s", name))
+points(incomes,as.numeric(tuitions$tuition)/1000,col='black',pch=18)
+plot(incomes,monthly_increase,pch=18,xlab='Family income (thousands)',ylab='Monthly tuition increase ($)',main="Tuition increases",ylim=c(0,110))
+
+plot(incomes,monthly_increase/incomes,pch=18,xlab='Family income (thousands)',ylab='Increase as % of income',main=paste("Tuition increases \n as percent of income"),ylim=c(0,2))
+
+plot(incomes,monthly_increase/as.numeric(tuitions$tuition)*1000,pch=18,xlab='Family income (thousands)',ylab='Increase as % ',main=paste("Tuition increases as \n percent of current tuition"),ylim=c(0,25))
+
+sprintf('The mean tuition under this proposal is %d.',  round(mean(outputs$tuition)*1000))  
+
+}
+```
+
+
+```{r}
+outputs<-calc_tuitions()
+```
+
+## Current tuition vs income
+
+```{r,echo=FALSE,results='hide'}
+outputs<-calc_tuitions(min_tuition = 1.50,max_tuition=12,brackets=TRUE,bracket_boundaries=c(20.,40.,60.,80,100),bracket_percents = c(0,8.,9,10,11,12)+0,rounding=.25)  # Exactly reproduces current tuition
+
+plot(outputs$incomes,as.numeric(tuitions$tuition)/1000,col='black',pch=18,xlab='Family income (thousands)',ylab='Annual tuition (thousands)',main="Current tuition")
+
+```
+
+
+The current mean tuition is `r round(mean(as.numeric(tuitions$tuition)))`.
+
+
+\newpage
+# Model 1: Carissa's Proposal
+
+```
+income	tuition assessment
+under $20k	min = $1650
+$20-40k	          9%
+$40-60k	          10%
+$60-80k	          11%
+$80-100k	        12%
+$100k+	          13%
+
+
+
+```
+
+Note that in this proposal, families earning \$1 less than the \$20,000 minimum will pay the minimum tuition of \$1,650. However, families earning \$1 above \$20,000 will pay at the 9\% rate, which is \$1,800. Currently these families pay at the minimum tuition of $1,500. We may wish to make an adjustment to fix this gap.
+
+```{r,echo=FALSE}
+par(mfrow=c(2,2))
+outputs<-calc_tuitions(min_tuition = 1.650,max_tuition=13.5,brackets=TRUE,bracket_boundaries=c(20.,40.,60.,80,100),bracket_percents = c(0,8.,9,10,11,12)+1,rounding=.1)
+make_plots("Carissa's proposal",outputs$tuition,outputs$monthly_increase,outputs$incomes,tuitions)
+#make_plots("Carissa's proposal",outputs$floor_tuition,outputs$monthly_increase_floor,outputs$incomes,tuitions)
+
+
+```
+
+
+
+\newpage
+
+# Model 2: 10\% increase across the board
+
+This proposal has the same gap at the minimum income as Model 1 above.
+
+
+```
+income	tuition assessment
+under $20k	min = $1650
+$20-40k	          8.8%
+$40-60k	          9.9%
+$60-80k	          11%
+$80-100k	        12.1%
+$100k+	          13.2%
+
+
+
+```
+
+
+```{r,echo=FALSE}
+par(mfrow=c(2,2))
+outputs<-calc_tuitions(min_tuition = 1.650, brackets=TRUE,bracket_boundaries=c(20.,40.,60.,80,100),bracket_percents = c(0,8.,9,10,11,12)*1.1,rounding=.1)
+make_plots("10% proposal",outputs$tuition,outputs$monthly_increase,outputs$incomes,tuitions)
+#make_plots("Carissa's proposal",outputs$floor_tuition,outputs$monthly_increase_floor,outputs$incomes,tuitions)
+
+
+```
+
+\newpage
+
+
+
+
+# Model 3: No-brackets proposal
+
+In this proposal, tuition within the bracket range is calculated according to this formula: $$\text{tuition}=\frac{\text{income}-\$20,000}{\$84,000}\times 4.75\% + 8.25\%$$.
+
+Corresponding brackets:
+
+```
+income	tuition assessment
+under $20k	min = $1650
+$20-40k	    8.25%-9.38%
+$40-60k	    9.38%-10.51%
+$60-80k	    10.51%-11.64%
+$80-100k	  11.64%-12.77%
+$100k-104k	12.77%-13%
+```
+
+```{r}
+outputs<-calc_tuitions(max_income = 104,max_tuition=13.5,min_tuition=1.650,combine=FALSE,rounding=FALSE)
+
+make_plots("No-bracket proposal",outputs$tuition,outputs$monthly_increase,outputs$incomes,tuitions)
+
+```
+
+
+\newpage
+
+
+
+
+# Model 4: Combined proposal
+
+In this proposal, tuition is the average of the tuitions calculated with the 10% across the board proposal and the no-brackets proposal. The idea is to use this proposal for one year, and then the following year go to the no-brackets proposal.
+
+
+```{r}
+outputs1<-calc_tuitions(max_income = 104,max_tuition=13.5,combine=FALSE,rounding=FALSE)
+outputs2<-calc_tuitions(min_tuition = 1.650, brackets=TRUE,bracket_boundaries=c(20.,40.,60.,80,100),bracket_percents = c(0,8.,9,10,11,12)*1.1,rounding=FALSE)
+outputs1$tuition<-(outputs1$tuition+outputs2$tuition)/2
+outputs1$tuition<-ceiling(outputs1$tuition/.1)*.1 # do rounding
+outputs1$monthly_increase<-(outputs$tuition-as.numeric(tuitions$tuition)/1000)*100
+
+outputs1$monthly_increase<-(outputs1$monthly_increase+outputs2$monthly_increase)/2
+
+make_plots("combined proposal",outputs1$tuition,outputs1$monthly_increase,outputs1$incomes,tuitions)
+
+```
+
+
+
+```
+
+
