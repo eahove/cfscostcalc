@@ -105,6 +105,7 @@ export default class TuitionBasic extends React.Component {
     for (let student of this.state.students){
       const id = 'cfs-checkbox-' + student.key
       
+
       studentList.push(
         <div key={student.key}>
           <div className={className} id={this.id}>
@@ -113,9 +114,9 @@ export default class TuitionBasic extends React.Component {
                 onClick={() => this.removeStudent(student.key)}></i>
             </div>
             <div className={'cfs-input-container'}>
-              <input type='text' value={student.name} className={'cfs-input'}
+              <input type='text' placeholder = "Student's name" className={'cfs-input'}
                 onChange={(e) => this.setStudentName(e.target.value, student.key)} />
-              <input type='checkbox' 
+              <input type='checkbox'
                 id={id}
                 onClick={()=>this.toggleStudentPreK(student.key)}
                 checked={student.preK} />
@@ -127,7 +128,7 @@ export default class TuitionBasic extends React.Component {
           </div>
         </div>)
     }
-    let addStudent = <div className={'cfs-income-list-add-income'} 
+    let addStudent = <div className={'cfs-income-list-add-income'}
       onClick={() => this.addStudent()}>
         <i className={"far fa-plus-square"}></i> {'student'}
       </div>
@@ -153,7 +154,7 @@ export default class TuitionBasic extends React.Component {
       <div>
         <h2>Estimate Tuition for 2019-2020</h2>
       <div className='cfs-basic-container'>
-        
+
         <div className={'cfs-list-container'}>
           <div className={'cfs-list-container-title'}>{'Income Sources (2019-2020)'}</div>
           <IncomeList callback={(i) => this.updateIncome(i)} />
@@ -161,7 +162,7 @@ export default class TuitionBasic extends React.Component {
             {'Total Income: $' + formatMoney(this.state.totalIncome)}
           </div>
           <div>
-            <input type='checkbox' id='cfs-pre2019' 
+            <input type='checkbox' id='cfs-pre2019'
               onClick={()=>this.togglePre2019Family()} value={this.state.pre2019Family}/>
             <label htmlFor='cfs-pre2019'>{'Family enrolled prior to Jan 2019'}</label>
           </div>
@@ -198,7 +199,7 @@ function formatMoney(n, c, d, t) {
 
 function calcTuition(preK, income, pre2019Family, sibling){
   let tuition = model4(income)
-  
+
   // set minimum tuition
   let min = minTuition
   if (preK){
@@ -213,7 +214,7 @@ function calcTuition(preK, income, pre2019Family, sibling){
     }
     tuition = tuition * rate
   }
-  
+
   if (tuition < min){
     tuition = min
   }
