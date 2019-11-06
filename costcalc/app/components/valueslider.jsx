@@ -15,15 +15,19 @@ export default class ValueSlider extends React.Component {
   }
 
   handleValueChange(value){
-    if (value !== this.state.value){
+    // convert value string to float
+    var numval = Number.parseFloat(value.replace(/[^\d.]/g, ''))
+    if (Number.isNaN(numval)){ numval = 0 }
+
+    if (numval !== this.state.value){
       // TODO: validate inputs
 
       // update callback
-      this.callback(value)
+      this.callback(numval)
 
       // update internal state
       const newState = Object.assign({}, this.state)
-      newState.value = value
+      newState.value = numval
       this.setState(newState)
     }
   }
@@ -37,10 +41,11 @@ export default class ValueSlider extends React.Component {
         </div>
         <div className={'cfs-input-container'}>
           <label htmlFor={this.id} className={'cfs-input-label'}>{this.label + " : "}</label>
+          <span className={'.cfs-input-dollar'}>$</span>
           <input
             type={'text'}
             className={'cfs-input'}
-            value={this.state.value}
+            value={toCurrency(this.state.value)}
             id={this.id}
             onChange={(e) => this.handleValueChange(e.target.value)}
             />
@@ -48,4 +53,15 @@ export default class ValueSlider extends React.Component {
       </div>
     )
   }
+}
+
+function toCurrency(value){
+  // convert numeric value to currency string
+  const style = {
+    // style: 'currency',
+    // currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }
+  return value.toLocaleString('en-US', style)
 }
