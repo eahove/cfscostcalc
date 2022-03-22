@@ -47,6 +47,53 @@ export function model3(x) {
 	}
 }
 
+export function ConsistentIncreasingRate(minRate,maxRate,LERPPercent)
+{
+	if(LERPPercent <= 0)
+	{
+		return minRate
+	}
+	else if(LERPPercent >= 1.0)
+	{
+		return maxRate
+	}
+	else
+	{
+		return (maxRate - minRate)*LERPPercent + minRate
+	}
+}
+
+export function model2022(x) {
+	const roundTo = 100
+	const maxTuition = 19500
+	const minTuition = 1600
+	const minIncome = 20000
+	const peakIncome = 130000
+	const minRate = .0865
+	const maxRate = .1500
+
+	if (x <= minIncome){
+		return minTuition
+	}
+
+	if( x >= peakIncome){
+		return maxTuition
+	}
+
+	//const rate = smoothRate(x)
+
+	const rate = ConsistentIncreasingRate(minRate, maxRate, ((x-minIncome)/(peakIncome-minIncome)))	
+
+	const adj = x * rate
+	if (adj < minTuition) {
+		return minTuition
+	} else if (adj > maxTuition) {
+		return maxTuition
+	} else {
+		return Math.ceil(adj / roundTo) * roundTo
+	}
+}
+
 // step model -- old system
 export function stepModel(x) {
 	const roundTo = 250

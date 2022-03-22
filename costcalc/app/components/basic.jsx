@@ -1,7 +1,7 @@
 import React from 'react';
 import TuitionPlot from './plot-tuition';
 import IncomeList from './incomelist';
-import {model3, stepModel, model4, MODEL3, STEPMODEL, MODEL4} from './models';
+import {model3, stepModel, model4, MODEL3, STEPMODEL, MODEL4, model2022} from './models';
 
 const minPrekTuition = 3500
 const minTuition = 1600
@@ -151,11 +151,11 @@ export default class TuitionBasic extends React.Component {
 
     return(
       <div>
-        <h2>Estimate Tuition for 2019-2020</h2>
+        <h2>Estimate Tuition for 2022-2023</h2>
       <div className='cfs-basic-container'>
         
         <div className={'cfs-list-container'}>
-          <div className={'cfs-list-container-title'}>{'Income Sources (2019-2020)'}</div>
+          <div className={'cfs-list-container-title'}>{'Income Sources (2022-2023)'}</div>
           <IncomeList callback={(i) => this.updateIncome(i)} />
           <div className={'cfs-income-list-total-income'}>
             {'Total Income: $' + formatMoney(this.state.totalIncome)}
@@ -171,7 +171,7 @@ export default class TuitionBasic extends React.Component {
           {studentList}
         </div>
         <div className={'cfs-list-container'}>
-          <div className={'cfs-list-container-title'}>{'Tuition Estimate (2019-2020)'}</div>
+          <div className={'cfs-list-container-title'}>{'Tuition Estimate (2022-2023)'}</div>
           <div className={'cfs-basic-tuition'}>
             {'Total Tuition: $' + formatMoney(totalTuition)}
           </div>
@@ -197,7 +197,7 @@ function formatMoney(n, c, d, t) {
 }
 
 function calcTuition(preK, income, pre2019Family, sibling){
-  let tuition = model4(income)
+  let tuition = model2022(income)
   
   // set minimum tuition
   let min = minTuition
