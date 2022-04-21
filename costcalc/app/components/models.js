@@ -64,7 +64,7 @@ export function ConsistentIncreasingRate(minRate,maxRate,LERPPercent)
 }
 
 export function model2022(x) {
-	const roundTo = 100
+	const roundTo = 1
 	const maxTuition = 19500
 	const minTuition = 1600
 	const minIncome = 20000
@@ -90,7 +90,7 @@ export function model2022(x) {
 	} else if (adj > maxTuition) {
 		return maxTuition
 	} else {
-		return Math.ceil(adj / roundTo) * roundTo
+		return Math.floor(adj / roundTo) * roundTo
 	}
 }
 
