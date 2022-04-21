@@ -65,14 +65,16 @@ export function ConsistentIncreasingRate(minRate,maxRate,LERPPercent)
 
 export function model2022(x) {
 	const roundTo = 1
-	const maxTuition = 19500
+	const maxTuition = 16500
 	const minTuition = 1600
-	const minIncome = 20000
-	const peakIncome = 130000
-	const minRate = .0865
-	const maxRate = .1500
 
-	if (x <= minIncome){
+	const minRate = .0865
+	const maxRate = .1200
+	const peakIncome = maxTuition/maxRate//137500
+	//const minIncome = minTuition/minRate//20000
+	const minIncome = 20000
+
+	if (x < minIncome){
 		return minTuition
 	}
 
