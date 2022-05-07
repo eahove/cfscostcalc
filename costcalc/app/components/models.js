@@ -69,22 +69,24 @@ export function model2022(x) {
 	const minTuition = 1600
 
 	const minRate = .0865
-	const maxRate = .1200
-	const peakIncome = maxTuition/maxRate//137500
-	//const minIncome = minTuition/minRate//20000
+	const maxRate = .1500
+	const rateCap = .1200
+	const peakIncome = 130000// was peak before the rate cap was added
 	const minIncome = 20000
 
-	if (x < minIncome){
+	if (x <= minIncome){
 		return minTuition
 	}
 
-	if( x >= peakIncome){
-		return maxTuition
-	}
+	// if( x >= peakIncome){
+	// 	return maxTuition
+	// }
 
 	//const rate = smoothRate(x)
 
-	const rate = ConsistentIncreasingRate(minRate, maxRate, ((x-minIncome)/(peakIncome-minIncome)))	
+	var rate = ConsistentIncreasingRate(minRate, maxRate, ((x-minIncome)/(peakIncome-minIncome)))	
+
+	if(rate > rateCap) rate = rateCap;
 
 	const adj = x * rate
 	if (adj < minTuition) {
